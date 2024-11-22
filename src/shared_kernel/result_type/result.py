@@ -76,6 +76,7 @@ class Result(Generic[T, E]):
             case Result(False, _, error):
                 assert error
                 return Result.Err(error)
+        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map"))
 
     def map_err(self, op: Callable[[E], F]) -> "Result[T, F]":
         match self:
@@ -85,6 +86,7 @@ class Result(Generic[T, E]):
             case Result(False, _, error):
                 assert error
                 return Result.Err(op(error))
+        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map_err"))
 
     def and_then(self, op: Callable[[T], "Result[U, E]"]) -> "Result[U, E]":
         match self:
@@ -94,6 +96,7 @@ class Result(Generic[T, E]):
             case Result(False, _, error):
                 assert error
                 return Result.Err(error)
+        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("and_then"))
 
     def map_or(self, default: U, op: Callable[[T], U]) -> U:
         match self:
@@ -127,6 +130,7 @@ class Result(Generic[T, E]):
             case Result(False, _, error):
                 assert error
                 return op(error)
+        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map_or_else"))
 
     def ok(self) -> T | None:
         return self._value

@@ -26,7 +26,7 @@ def test_is_ok_and_when_ok_and_predicate_true_then_returns_true() -> None:
 
 def test_is_ok_and_when_err_then_returns_false() -> None:
     result: Result[int, str] = Err("error")
-    assert not result.is_ok_and(lambda x: len(x) > 3)
+    assert not result.is_ok_and(lambda x: x > 3)
 
 
 def test_is_ok_and_when_ok_and_predicate_false_then_returns_false() -> None:
