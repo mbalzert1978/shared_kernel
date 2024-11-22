@@ -1,3 +1,3 @@
-from .arguments import ArgumentException, ArgumentNullException
+from .arguments import ArgumentException
 
-__all__ = ["ArgumentException", "ArgumentNullException"]
+__all__ = ["ArgumentException"]

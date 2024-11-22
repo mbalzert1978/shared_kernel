@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Generic, TypeVar
 
-from shared_kernel.design_by_contract import ArgumentNullException
+from shared_kernel.design_by_contract import ArgumentException
 from shared_kernel.result_type.UnwrapFailedException import UnwrapFailedException
 
 T = TypeVar("T", bound=object)
@@ -22,12 +22,12 @@ class Result(Generic[T, E]):
 
     @classmethod
     def Ok(cls, value: T) -> "Result[T, E]":
-        ArgumentNullException.throw_if_null(value, "Ok.value")
+        ArgumentException.raise_if_none(value, "Ok.value")
         return cls(True, value, None)
 
     @classmethod
     def Err(cls, error: E) -> "Result[T, E]":
-        ArgumentNullException.throw_if_null(error, "Err.error")
+        ArgumentException.raise_if_none(error, "Err.error")
         return cls(False, None, error)
 
     def is_ok(self) -> bool:

@@ -1,6 +1,6 @@
 import pytest
 
-from shared_kernel import ArgumentNullException, Err, Ok, Result, UnwrapFailedException
+from shared_kernel import ArgumentException, Err, Ok, Result, UnwrapFailedException
 
 
 def test_ok_when_created_then_is_ok_and_has_value() -> None:
@@ -144,7 +144,7 @@ def test_and_then_when_err_then_preserves_error() -> None:
 
 
 def test_ok_raises_attribute_null_error_when_value_is_none():
-    with pytest.raises(ArgumentNullException, match="Value cannot be null.") as exc:
+    with pytest.raises(ArgumentException, match="Value cannot be null.") as exc:
         Ok(None)
 
     assert exc.value.message == "Value cannot be null. (Parameter 'Ok.value')"
@@ -152,7 +152,7 @@ def test_ok_raises_attribute_null_error_when_value_is_none():
 
 
 def test_err_raises_attribute_null_error_when_error_is_none():
-    with pytest.raises(ArgumentNullException, match="Value cannot be null.") as exc:
+    with pytest.raises(ArgumentException, match="Value cannot be null.") as exc:
         Err(None)
 
     assert exc.value.message == "Value cannot be null. (Parameter 'Err.error')"
