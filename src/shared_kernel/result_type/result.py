@@ -1,17 +1,12 @@
 from dataclasses import dataclass
-from typing import Callable, Generic, TypeVar
+from typing import Callable
 
 from shared_kernel.design_by_contract import ArgumentException
 from shared_kernel.result_type.UnwrapFailedException import UnwrapFailedException
 
-T = TypeVar("T", bound=object)
-E = TypeVar("E")
-U = TypeVar("U", bound=object)
-F = TypeVar("F")
-
 
 @dataclass
-class Result(Generic[T, E]):
+class Result[T: object, E]:
     __match_args__ = ("_is_ok", "_value", "_error")
     __slots__ = ("_is_ok", "_value", "_error")
     __INVALID_STATE_ERROR__ = "BUG: Invalid state encountered. {}"
@@ -36,7 +31,7 @@ class Result(Generic[T, E]):
     def is_ok_and(self, predicate: Callable[[T], bool]) -> bool:
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return predicate(value)
             case _:
                 return False
@@ -47,7 +42,7 @@ class Result(Generic[T, E]):
     def is_err_and(self, predicate: Callable[[E], bool]) -> bool:
         match self:
             case Result(False, _, error):
-                assert error
+                assert error is not None
                 return predicate(error)
             case _:
                 return False
@@ -55,7 +50,7 @@ class Result(Generic[T, E]):
     def expect(self, message: str) -> T:
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return value
             case _:
                 raise UnwrapFailedException(message)
@@ -63,72 +58,72 @@ class Result(Generic[T, E]):
     def expect_err(self, message: str) -> E:
         match self:
             case Result(False, _, error):
-                assert error
+                assert error is not None
                 return error
             case _:
                 raise UnwrapFailedException(message)
 
-    def map(self, op: Callable[[T], U]) -> "Result[U, E]":
+    def map[U](self, op: Callable[[T], U]) -> "Result[U, E]":
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return Result.Ok(op(value))
             case Result(False, _, error):
-                assert error
+                assert error is not None
                 return Result.Err(error)
         raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map"))
 
-    def map_err(self, op: Callable[[E], F]) -> "Result[T, F]":
+    def map_err[F](self, op: Callable[[E], F]) -> "Result[T, F]":
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return Result.Ok(value)
             case Result(False, _, error):
-                assert error
+                assert error is not None
                 return Result.Err(op(error))
         raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map_err"))
 
-    def and_then(self, op: Callable[[T], "Result[U, E]"]) -> "Result[U, E]":
+    def and_then[U](self, op: Callable[[T], "Result[U, E]"]) -> "Result[U, E]":
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return op(value)
             case Result(False, _, error):
-                assert error
+                assert error is not None
                 return Result.Err(error)
         raise AssertionError(Result.__INVALID_STATE_ERROR__.format("and_then"))
 
-    def map_or(self, default: U, op: Callable[[T], U]) -> U:
+    def map_or[U](self, default: U, op: Callable[[T], U]) -> U:
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return op(value)
             case _:
                 return default
 
-    def map_or_else(self, default: Callable[[], U], op: Callable[[T], U]) -> U:
+    def map_or_else[U](self, default: Callable[[], U], op: Callable[[T], U]) -> U:
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return op(value)
             case _:
                 return default()
 
-    def or_(self, default: U) -> T | U:
+    def or_[U](self, default: U) -> T | U:
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return value
             case _:
                 return default
 
-    def or_else(self, op: Callable[[E], "Result[T, F]"]) -> "Result[T, F]":
+    def or_else[F](self, op: Callable[[E], "Result[T, F]"]) -> "Result[T, F]":
         match self:
             case Result(True, value, _):
-                assert value
+                assert value is not None
                 return Result.Ok(value)
             case Result(False, _, error):
-                assert error
+                assert error is not None
                 return op(error)
         raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map_or_else"))
 
@@ -139,9 +134,9 @@ class Result(Generic[T, E]):
         return self._error
 
 
-def Ok(value: T) -> Result[T, E]:
+def Ok[T, E](value: T) -> Result[T, E]:
     return Result.Ok(value)
 
 
-def Err(error: E) -> Result[T, E]:
+def Err[T, E](error: E) -> Result[T, E]:
     return Result.Err(error)
