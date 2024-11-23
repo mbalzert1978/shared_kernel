@@ -157,3 +157,120 @@ def test_err_raises_attribute_none_error_when_error_is_none():
 
     assert exc.value.message == "Argument cannot be none. (Parameter 'Err.error')"
     assert exc.value.param_name == "Err.error"
+
+
+def test_result_equality_when_ok_results_with_same_value_then_returns_true() -> None:
+    assert Ok(42) == Ok(42)
+    assert Ok("test") == Ok("test")
+
+
+def test_result_equality_when_ok_results_with_different_values_then_returns_false() -> (
+    None
+):
+    assert Ok(42) != Ok(43)
+
+
+def test_result_equality_when_ok_and_err_results_then_returns_false() -> None:
+    assert Ok(42) != Err("error")
+
+
+def test_result_equality_when_err_results_with_same_error_then_returns_true() -> None:
+    assert Err("error") == Err("error")
+    assert Err(42) == Err(42)
+
+
+def test_result_equality_when_err_results_with_different_errors_then_returns_false() -> (
+    None
+):
+    assert Err("error1") != Err("error2")
+
+
+def test_result_hash_when_ok_results_with_same_value_then_returns_same_hash() -> None:
+    assert hash(Ok(42)) == hash(Ok(42))
+    assert hash(Ok("test")) == hash(Ok("test"))
+
+
+def test_result_hash_when_ok_results_with_different_values_then_returns_different_hash() -> (
+    None
+):
+    assert hash(Ok(42)) != hash(Ok(43))
+
+
+def test_result_hash_when_err_results_with_same_error_then_returns_same_hash() -> None:
+    assert hash(Err("error")) == hash(Err("error"))
+    assert hash(Err(42)) == hash(Err(42))
+
+
+def test_result_hash_when_err_results_with_different_errors_then_returns_different_hash() -> (
+    None
+):
+    assert hash(Err("error1")) != hash(Err("error2"))
+
+
+def test_result_repr_when_ok_result_then_returns_expected_string() -> None:
+    assert repr(Ok(42)) == "Result(is_ok=True, value=42, error=None)"
+    assert repr(Ok("test")) == "Result(is_ok=True, value=test, error=None)"
+
+
+def test_result_repr_when_err_result_then_returns_expected_string() -> None:
+    assert repr(Err("error")) == "Result(is_ok=False, value=None, error=error)"
+    assert repr(Err(42)) == "Result(is_ok=False, value=None, error=42)"
+
+
+def test_result_str_when_ok_result_then_returns_expected_string() -> None:
+    assert str(Ok(42)) == "Result(42, None)"
+    assert str(Ok("test")) == "Result(test, None)"
+
+
+def test_result_str_when_err_result_then_returns_expected_string() -> None:
+    assert str(Err("error")) == "Result(None, error)"
+    assert str(Err(42)) == "Result(None, 42)"
+
+
+def test_result_hash_and_equality_when_equal_results_then_have_same_hash() -> None:
+    r1 = Ok(42)
+    r2 = Ok(42)
+    r3 = Err("error")
+    r4 = Err("error")
+
+    assert r1 == r2 and hash(r1) == hash(r2)
+    assert r3 == r4 and hash(r3) == hash(r4)
+    assert r1 != r3 and hash(r1) != hash(r3)
+
+
+def test_result_with_complex_objects_when_comparing_and_hashing_then_behaves_correctly() -> (
+    None
+):
+    class ComplexObject:
+        def __init__(self, value):
+            self.value = value
+
+        def __eq__(self, other):
+            return isinstance(other, ComplexObject) and self.value == other.value
+
+        def __hash__(self):
+            return hash(self.value)
+
+    obj1 = ComplexObject(42)
+    obj2 = ComplexObject(42)
+    obj3 = ComplexObject(43)
+
+    assert Ok(obj1) == Ok(obj2)
+    assert Ok(obj1) != Ok(obj3)
+    assert hash(Ok(obj1)) == hash(Ok(obj2))
+    assert hash(Ok(obj1)) != hash(Ok(obj3))
+
+
+def test_result_repr_and_str_with_complex_objects_when_converted_then_uses_object_repr() -> (
+    None
+):
+    class ComplexObject:
+        def __repr__(self):
+            return "ComplexObject()"
+
+    obj = ComplexObject()
+
+    assert repr(Ok(obj)) == "Result(is_ok=True, value=ComplexObject(), error=None)"
+    assert str(Ok(obj)) == "Result(ComplexObject(), None)"
+    assert repr(Err(obj)) == "Result(is_ok=False, value=None, error=ComplexObject())"
+    assert str(Err(obj)) == "Result(None, ComplexObject())"

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import Callable, cast
+from typing import Callable, ClassVar, cast
 
 from shared_kernel.design_by_contract import ArgumentException
+from shared_kernel.functions import hash_combine
 from shared_kernel.result_type.UnwrapFailedException import UnwrapFailedException
 
 
@@ -10,9 +11,30 @@ class Result[T: object, E]:
     __match_args__ = ("_is_ok", "_value", "_error")
     __slots__ = ("_is_ok", "_value", "_error")
 
+    STRING_FORMAT: ClassVar[str] = "Result({}, {})"
+    REPR_FORMAT: ClassVar[str] = "Result(is_ok={}, value={}, error={})"
+
     _is_ok: bool
     _value: T | None
     _error: E | None
+
+    def __str__(self):
+        return self.STRING_FORMAT.format(self._value, self._error)
+
+    def __repr__(self):
+        return self.REPR_FORMAT.format(self._is_ok, self._value, self._error)
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            False
+            if not isinstance(other, Result)
+            else self._is_ok == other._is_ok
+            and self._value == other._value
+            and self._error == other._error
+        )
+
+    def __hash__(self) -> int:
+        return hash_combine(self._is_ok, self._value, self._error)
 
     @classmethod
     def Ok(cls, value: T) -> "Result[T, E]":
