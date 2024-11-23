@@ -1,6 +1,6 @@
 from functools import reduce
 
-from shared_kernel import ArgumentException
+from shared_kernel.design_by_contract import ArgumentException
 
 GOLDEN_RATIO = 0x9E3779B9
 LEFT_SHIFT = 6
