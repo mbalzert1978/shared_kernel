@@ -5,60 +5,71 @@ import pytest
 from shared_kernel import ArgumentException, Error
 
 
-def test_error_str_when_code_and_description_provided_then_returns_formatted_string():
+def test_error_str_when_code_and_description_provided_then_returns_formatted_string() -> (
+    None
+):
     error = Error("404", "Not Found")
     assert str(error) == "404:Not Found"
 
 
-def test_error_repr_when_called_then_returns_formatted_string():
+def test_error_repr_when_called_then_returns_formatted_string() -> None:
     error = Error("500", "Internal Server Error")
     assert repr(error) == "Error(code: 500, description:Internal Server Error)"
 
 
-def test_error_eq_when_same_code_then_returns_true():
+def test_error_eq_when_same_code_then_returns_true() -> None:
     error1 = Error("400", "Bad Request")
     error2 = Error("400", "Different Description")
     assert error1 == error2
 
 
-def test_error_eq_when_different_code_then_returns_false():
+def test_error_eq_when_different_code_then_returns_false() -> None:
     error1 = Error("400", "Bad Request")
     error2 = Error("404", "Not Found")
     assert error1 != error2
 
 
-def test_error_hash_when_same_code_and_description_then_returns_same_hash():
+def test_error_hash_when_same_code_and_description_then_returns_same_hash() -> None:
     error1 = Error("403", "Forbidden")
     error2 = Error("403", "Forbidden")
     assert hash(error1) == hash(error2)
 
 
-def test_error_default_when_called_then_returns_error_with_empty_strings():
+def test_error_default_when_called_then_returns_error_with_empty_strings() -> None:
     error = Error.default()
-    assert error.code == "" and error.description == ""
+    assert error.code == "E000" and error.description == ""
 
 
-def test_error_from_when_string_with_separator_then_splits_correctly():
+def test_error_from_when_string_with_separator_then_splits_correctly() -> None:
     error = Error.from_("404:Not Found")
     assert error.code == "404" and error.description == "Not Found"
 
 
-def test_error_from_when_string_without_separator_then_sets_description_to_empty_str():
+def test_error_from_when_string_without_separator_then_sets_description_to_empty_str() -> (
+    None
+):
     error = Error.from_("500")
     assert error.code == "500" and error.description == ""
 
 
-def test_error_from_when_http_status_then_creates_error_from_status():
+def test_error_from_when_string_with_multiple_colons_should_split_once_and_take_the_first_item_as_description() -> (
+    None
+):
+    error = Error.from_("404:Not Found: Extra Text")
+    assert error.code == "404" and error.description == "Not Found"
+
+
+def test_error_from_when_http_status_then_creates_error_from_status() -> None:
     error = Error.from_(HTTPStatus.NOT_FOUND)
     assert error.code == "404" and error.description == "Not Found"
 
 
-def test_error_from_when_invalid_type_then_raises_value_error():
+def test_error_from_when_invalid_type_then_raises_value_error() -> None:
     with pytest.raises(ArgumentException, match="Invalid source type"):
         Error.from_(123)
 
 
-def test_error_idempotence_when_converted_to_string_and_back():
+def test_error_idempotence_when_converted_to_string_and_back() -> None:
     original_error = Error("418", "I'm a teapot")
     error_string = str(original_error)
     reconstructed_error = Error.from_(error_string)
@@ -67,7 +78,9 @@ def test_error_idempotence_when_converted_to_string_and_back():
     assert original_error.description == reconstructed_error.description
 
 
-def test_error_idempotence_when_converted_to_string_and_back_with_empty_description_str():
+def test_error_idempotence_when_converted_to_string_and_back_with_empty_description_str() -> (
+    None
+):
     original_error = Error("204")
     error_string = str(original_error)
     reconstructed_error = Error.from_(error_string)
