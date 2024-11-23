@@ -2,20 +2,26 @@ from dataclasses import dataclass
 from http import HTTPStatus
 from typing import ClassVar, Self, overload
 
+from shared_kernel.design_by_contract import ArgumentException
 from shared_kernel.functions import hash_combine
 
 
 @dataclass(frozen=True)
 class Error:
-    SEPARATOR: ClassVar = ":"
+    _SEPARATOR: ClassVar[str] = ":"
+    _EMPTY_STRING: ClassVar[str] = ""
+    _INVALID_SOURCE_TYPE: ClassVar[str] = "Invalid source type"
+    _STR_FORMAT: ClassVar[str] = "{}{}{}"
+    _REPR_FORMAT: ClassVar[str] = "Error(code: {}, description:{})"
+
     code: str
-    description: str = ""
+    description: str = _EMPTY_STRING
 
     def __str__(self) -> str:
-        return f"{self.code}:{self.description}"
+        return self._STR_FORMAT.format(self.code, self._SEPARATOR, self.description)
 
     def __repr__(self) -> str:
-        return f"Error(code: {self.code}, description:{self.description})"
+        return self._REPR_FORMAT.format(self.code, self.description)
 
     def __eq__(self, other: object) -> bool:
         return False if not isinstance(other, Error) else self.code == other.code
@@ -25,7 +31,7 @@ class Error:
 
     @classmethod
     def default(cls) -> Self:
-        return cls("", "")
+        return cls(cls._EMPTY_STRING, cls._EMPTY_STRING)
 
     @classmethod
     @overload
@@ -39,9 +45,9 @@ class Error:
     def from_(cls, source) -> Self:
         match source:
             case str():
-                left, *right = source.split(Error.SEPARATOR)
-                return cls(left, next(iter(right), ""))
+                left, *right = source.split(cls._SEPARATOR)
+                return cls(left, next(iter(right), cls._EMPTY_STRING))
             case HTTPStatus():
                 return cls(str(source.value), source.phrase)
             case _:
-                raise ValueError("Invalid source type")
+                raise ArgumentException(cls._INVALID_SOURCE_TYPE, str(source))

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, cast
 
 from shared_kernel.design_by_contract import ArgumentException
 from shared_kernel.result_type.UnwrapFailedException import UnwrapFailedException
@@ -9,7 +9,6 @@ from shared_kernel.result_type.UnwrapFailedException import UnwrapFailedExceptio
 class Result[T: object, E]:
     __match_args__ = ("_is_ok", "_value", "_error")
     __slots__ = ("_is_ok", "_value", "_error")
-    __INVALID_STATE_ERROR__ = "BUG: Invalid state encountered. {}"
 
     _is_ok: bool
     _value: T | None
@@ -29,103 +28,60 @@ class Result[T: object, E]:
         return self._is_ok
 
     def is_ok_and(self, predicate: Callable[[T], bool]) -> bool:
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return predicate(value)
-            case _:
-                return False
+        if self._is_ok and self._value is not None:
+            return predicate(self._value)
+        return False
 
     def is_err(self) -> bool:
         return not self._is_ok
 
     def is_err_and(self, predicate: Callable[[E], bool]) -> bool:
-        match self:
-            case Result(False, _, error):
-                assert error is not None
-                return predicate(error)
-            case _:
-                return False
+        if not self._is_ok and self._error is not None:
+            return predicate(self._error)
+        return False
 
     def expect(self, message: str) -> T:
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return value
-            case _:
-                raise UnwrapFailedException(message)
+        if self._is_ok and self._value is not None:
+            return self._value
+        raise UnwrapFailedException(message)
 
     def expect_err(self, message: str) -> E:
-        match self:
-            case Result(False, _, error):
-                assert error is not None
-                return error
-            case _:
-                raise UnwrapFailedException(message)
+        if not self._is_ok and self._error is not None:
+            return self._error
+        raise UnwrapFailedException(message)
 
     def map[U](self, op: Callable[[T], U]) -> "Result[U, E]":
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return Result.Ok(op(value))
-            case Result(False, _, error):
-                assert error is not None
-                return Result.Err(error)
-        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map"))
+        if self._is_ok and self._value is not None:
+            return Result.Ok(op(self._value))
+        return cast(Result[U, E], self)
 
     def map_err[F](self, op: Callable[[E], F]) -> "Result[T, F]":
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return Result.Ok(value)
-            case Result(False, _, error):
-                assert error is not None
-                return Result.Err(op(error))
-        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map_err"))
+        if not self._is_ok and self._error is not None:
+            return Result.Err(op(self._error))
+        return cast(Result[T, F], self)
 
     def and_then[U](self, op: Callable[[T], "Result[U, E]"]) -> "Result[U, E]":
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return op(value)
-            case Result(False, _, error):
-                assert error is not None
-                return Result.Err(error)
-        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("and_then"))
+        if self._is_ok and self._value is not None:
+            return op(self._value)
+        return cast(Result[U, E], self)
 
     def map_or[U](self, default: U, op: Callable[[T], U]) -> U:
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return op(value)
-            case _:
-                return default
+        if self._is_ok and self._value is not None:
+            return op(self._value)
+        return default
 
     def map_or_else[U](self, default: Callable[[], U], op: Callable[[T], U]) -> U:
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return op(value)
-            case _:
-                return default()
+        if self._is_ok and self._value is not None:
+            return op(self._value)
+        return default()
 
     def or_[U](self, default: U) -> T | U:
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return value
-            case _:
-                return default
+        return self._value or default
 
     def or_else[F](self, op: Callable[[E], "Result[T, F]"]) -> "Result[T, F]":
-        match self:
-            case Result(True, value, _):
-                assert value is not None
-                return Result.Ok(value)
-            case Result(False, _, error):
-                assert error is not None
-                return op(error)
-        raise AssertionError(Result.__INVALID_STATE_ERROR__.format("map_or_else"))
+        if not self._is_ok and self._error is not None:
+            return op(self._error)
+        return cast(Result[T, F], self)
 
     def ok(self) -> T | None:
         return self._value
