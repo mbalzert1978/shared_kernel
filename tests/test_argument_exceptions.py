@@ -34,7 +34,7 @@ def test_argument_exception_message_when_param_name_not_set_should_not_include_p
 
 
 def test_argument_exception_raise_if_none_when_none_should_raise_exception() -> None:
-    with pytest.raises(ArgumentException, match="Value cannot be null."):
+    with pytest.raises(ArgumentException, match="Argument cannot be none."):
         ArgumentException.raise_if_none(None, "test_param")
 
 
@@ -45,14 +45,14 @@ def test_argument_exception_raise_if_none_when_not_none_should_not_raise() -> No
 def test_argument_exception_raise_if_none_or_empty_when_none_should_raise_exception() -> (
     None
 ):
-    with pytest.raises(ArgumentException, match="Value cannot be null."):
+    with pytest.raises(ArgumentException, match="Argument cannot be none."):
         ArgumentException.raise_if_none_or_empty(None, "test_param")
 
 
 def test_argument_exception_raise_if_none_or_empty_when_empty_should_raise_exception() -> (
     None
 ):
-    with pytest.raises(ArgumentException, match="String argument cannot be empty."):
+    with pytest.raises(ArgumentException, match="Argument cannot be empty."):
         ArgumentException.raise_if_none_or_empty("", "test_param")
 
 
@@ -65,7 +65,7 @@ def test_argument_exception_raise_if_none_or_empty_when_valid_should_not_raise()
 def test_argument_exception_raise_if_none_or_whitespace_when_none_should_raise_exception() -> (
     None
 ):
-    with pytest.raises(ArgumentException, match="Value cannot be null."):
+    with pytest.raises(ArgumentException, match="Argument cannot be none."):
         ArgumentException.raise_if_none_or_whitespace(None, "test_param")
 
 

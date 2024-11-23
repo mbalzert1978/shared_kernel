@@ -144,16 +144,16 @@ def test_and_then_when_err_then_preserves_error() -> None:
 
 
 def test_ok_raises_attribute_null_error_when_value_is_none():
-    with pytest.raises(ArgumentException, match="Value cannot be null.") as exc:
+    with pytest.raises(ArgumentException, match="Argument cannot be none.") as exc:
         Ok(None)
 
-    assert exc.value.message == "Value cannot be null. (Parameter 'Ok.value')"
+    assert exc.value.message == "Argument cannot be none. (Parameter 'Ok.value')"
     assert exc.value.param_name == "Ok.value"
 
 
-def test_err_raises_attribute_null_error_when_error_is_none():
-    with pytest.raises(ArgumentException, match="Value cannot be null.") as exc:
+def test_err_raises_attribute_none_error_when_error_is_none():
+    with pytest.raises(ArgumentException, match="Argument cannot be none.") as exc:
         Err(None)
 
-    assert exc.value.message == "Value cannot be null. (Parameter 'Err.error')"
+    assert exc.value.message == "Argument cannot be none. (Parameter 'Err.error')"
     assert exc.value.param_name == "Err.error"

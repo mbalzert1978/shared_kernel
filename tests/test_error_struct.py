@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
-from shared_kernel import Error
+from shared_kernel import ArgumentException, Error
 
 
 def test_error_str_when_code_and_description_provided_then_returns_formatted_string():
@@ -54,8 +54,8 @@ def test_error_from_when_http_status_then_creates_error_from_status():
 
 
 def test_error_from_when_invalid_type_then_raises_value_error():
-    with pytest.raises(ValueError, match="Invalid source type"):
-        Error.from_(123)  # type: ignore
+    with pytest.raises(ArgumentException, match="Invalid source type"):
+        Error.from_(123)
 
 
 def test_error_idempotence_when_converted_to_string_and_back():
