@@ -9,6 +9,7 @@ from shared_kernel.functions import hash_combine
 @dataclass(frozen=True)
 class Error:
     _SEPARATOR: ClassVar[str] = ":"
+    _DEFAULT_CODE: ClassVar[str] = "E000"
     _EMPTY_STRING: ClassVar[str] = ""
     _INVALID_SOURCE_TYPE: ClassVar[str] = "Invalid source type"
     _STR_FORMAT: ClassVar[str] = "{}{}{}"
@@ -31,7 +32,7 @@ class Error:
 
     @classmethod
     def default(cls) -> Self:
-        return cls(cls._EMPTY_STRING, cls._EMPTY_STRING)
+        return cls(cls._DEFAULT_CODE, cls._EMPTY_STRING)
 
     @classmethod
     @overload
