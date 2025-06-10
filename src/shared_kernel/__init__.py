@@ -2,7 +2,7 @@ from .abstractions import IDefault, IFrom, IInto, ITryFrom, ITryInto
 from .design_by_contract import ArgumentException
 from .error_struct import Error
 from .functions import hash_combine
-from .result_type import Err, Ok, Result, UnwrapFailedException
+from .result_type import Result, ResultFactory, UnwrapFailedException
 
 __all__ = [
     "IDefault",
@@ -13,8 +13,7 @@ __all__ = [
     "ArgumentException",
     "Error",
     "hash_combine",
-    "Err",
-    "Ok",
     "Result",
+    "ResultFactory",
     "UnwrapFailedException",
 ]

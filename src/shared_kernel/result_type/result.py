@@ -1,120 +1,68 @@
 from dataclasses import dataclass
-from typing import Callable, ClassVar, cast
 
-from shared_kernel.design_by_contract import ArgumentException
-from shared_kernel.functions import hash_combine
-from shared_kernel.result_type.UnwrapFailedException import UnwrapFailedException
+from shared_kernel.design_by_contract.arguments import ArgumentException
+from shared_kernel.functions.hash_functions import hash_combine
+
+type Result[T, E] = Ok[T] | Err[E]
 
 
-@dataclass
-class Result[T: object, E]:
-    __match_args__ = ("_is_ok", "_value", "_error")
-    __slots__ = ("_is_ok", "_value", "_error")
+@dataclass(frozen=True, slots=True)
+class Ok[T]:
+    """Success variant of Result."""
 
-    STRING_FORMAT: ClassVar[str] = "Result({}, {})"
-    REPR_FORMAT: ClassVar[str] = "Result(is_ok={}, value={}, error={})"
+    value: T
 
-    _is_ok: bool
-    _value: T | None
-    _error: E | None
+    def __str__(self) -> str:
+        return f"Ok({self.value})"
 
-    def __str__(self):
-        return self.STRING_FORMAT.format(self._value, self._error)
-
-    def __repr__(self):
-        return self.REPR_FORMAT.format(self._is_ok, self._value, self._error)
-
-    def __eq__(self, other: object) -> bool:
-        return (
-            False
-            if not isinstance(other, Result)
-            else self._is_ok == other._is_ok
-            and self._value == other._value
-            and self._error == other._error
-        )
+    def __repr__(self) -> str:
+        return f"Ok(value={self.value!r})"
 
     def __hash__(self) -> int:
-        return hash_combine(self._is_ok, self._value, self._error)
+        return hash_combine(self.__class__.__name__, self.value)
 
-    @classmethod
-    def Ok(cls, value: T) -> "Result[T, E]":
-        ArgumentException.raise_if_none(value, "Ok.value")
-        return cls(True, value, None)
-
-    @classmethod
-    def Err(cls, error: E) -> "Result[T, E]":
-        ArgumentException.raise_if_none(error, "Err.error")
-        return cls(False, None, error)
-
-    def is_ok(self) -> bool:
-        return self._is_ok
-
-    def is_ok_and(self, predicate: Callable[[T], bool]) -> bool:
-        if self._is_ok and self._value is not None:
-            return predicate(self._value)
-        return False
-
-    def is_err(self) -> bool:
-        return not self._is_ok
-
-    def is_err_and(self, predicate: Callable[[E], bool]) -> bool:
-        if not self._is_ok and self._error is not None:
-            return predicate(self._error)
-        return False
-
-    def expect(self, message: str) -> T:
-        if self._is_ok and self._value is not None:
-            return self._value
-        raise UnwrapFailedException(message)
-
-    def expect_err(self, message: str) -> E:
-        if not self._is_ok and self._error is not None:
-            return self._error
-        raise UnwrapFailedException(message)
-
-    def map[U](self, op: Callable[[T], U]) -> "Result[U, E]":
-        if self._is_ok and self._value is not None:
-            return Result.Ok(op(self._value))
-        return cast(Result[U, E], self)
-
-    def map_err[F](self, op: Callable[[E], F]) -> "Result[T, F]":
-        if not self._is_ok and self._error is not None:
-            return Result.Err(op(self._error))
-        return cast(Result[T, F], self)
-
-    def and_then[U](self, op: Callable[[T], "Result[U, E]"]) -> "Result[U, E]":
-        if self._is_ok and self._value is not None:
-            return op(self._value)
-        return cast(Result[U, E], self)
-
-    def map_or[U](self, default: U, op: Callable[[T], U]) -> U:
-        if self._is_ok and self._value is not None:
-            return op(self._value)
-        return default
-
-    def map_or_else[U](self, default: Callable[[], U], op: Callable[[T], U]) -> U:
-        if self._is_ok and self._value is not None:
-            return op(self._value)
-        return default()
-
-    def or_[U](self, default: U) -> T | U:
-        return self._value or default
-
-    def or_else[F](self, op: Callable[[E], "Result[T, F]"]) -> "Result[T, F]":
-        if not self._is_ok and self._error is not None:
-            return op(self._error)
-        return cast(Result[T, F], self)
-
-    def ok(self) -> T | None:
-        return self._value
-
-    def err(self) -> E | None:
-        return self._error
+    def __eq__(self, other: object) -> bool:
+        match other:
+            case Ok(value):
+                return self.value == value
+            case _:
+                return False
 
 
-def Ok[T, E](value: T) -> Result[T, E]:
-    return Result.Ok(value)
+@dataclass(frozen=True, slots=True)
+class Err[E]:
+    """Error variant of Result."""
+
+    error: E
+
+    def __str__(self) -> str:
+        return f"Err({self.error})"
+
+    def __repr__(self) -> str:
+        return f"Err(error={self.error!r})"
+
+    def __hash__(self) -> int:
+        return hash_combine(self.__class__.__name__, self.error)
+
+    def __eq__(self, other: object) -> bool:
+        match other:
+            case Err(error):
+                return self.error == error
+            case _:
+                return False
 
 
-def Err[T, E](error: E) -> Result[T, E]:
-    return Result.Err(error)
+class ResultFactory[T, E]:
+    """Factory class for creating Result instances."""
+
+    @staticmethod
+    def ok(value: T) -> Result[T, E]:
+        """Create an Ok variant."""
+        ArgumentException.raise_if_none(value, "value")
+        return Ok[T](value)
+
+    @staticmethod
+    def err(error: E) -> Result[T, E]:
+        """Create an Err variant."""
+        ArgumentException.raise_if_none(error, "error")
+        return Err[E](error)

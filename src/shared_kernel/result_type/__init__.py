@@ -1,4 +1,6 @@
-from .result import Err, Ok, Result
-from .UnwrapFailedException import UnwrapFailedException
+"""Result type for error handling."""
 
-__all__ = ["AttributeNullError", "Err", "Ok", "Result", "UnwrapFailedException"]
+from .exceptions import UnwrapFailedException
+from .result import Err, Ok, Result, ResultFactory
+
+__all__ = ["Result", "ResultFactory", "UnwrapFailedException"]
